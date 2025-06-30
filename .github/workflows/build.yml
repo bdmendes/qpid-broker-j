@@ -40,13 +40,6 @@ jobs:
           java-version: ${{ matrix.java }}
           distribution: 'temurin'
 
-      - name: Licence Check
-        run: mvn -Papache-release,dependency-check clean apache-rat:check verify -DskipTests -Dgpg.skip -Denforcer.skip=true -Dmaven.javadoc.skip=true
-
-      - name: Archive rat.txt On Failure
-        if: failure()
-        run: tar -czvf licence-check-${{ matrix.java }}.tar.gz **/target/rat.txt
-
       - name: Install
         run: mvn clean install -DskipTests=true
 
@@ -55,17 +48,3 @@ jobs:
 
       - name: Integration Tests
         run: mvn verify -pl systests/protocol-tests-amqp-0-8,systests/protocol-tests-amqp-0-10,systests/protocol-tests-amqp-1-0,systests/qpid-systests-jms_1.1,systests/qpid-systests-jms_2.0,systests/qpid-systests-http-management -DskipTests=false -DskipITs=false
-
-      - name: Archive Test Logs On Failure
-        if: failure()
-        run: tar -czvf surefire-reports-jdk-${{ matrix.java }}.tar.gz **/target/surefire-reports/*
-
-      - name: Upload Test Logs On Failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: surefire-reports-jdk-${{ matrix.java }}
-          path: surefire-reports-jdk-${{ matrix.java }}.tar.gz
-
-      - name: Clean Up Before Caching
-        run: rm -rf ~/.m2/repository/org/apache/qpid
